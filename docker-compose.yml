@@ -1,0 +1,39 @@
+version : '3'
+services :
+ ES7 :
+  image : docker.elastic.co/elasticsearch/elasticsearch:7.14.1
+  container_name : ES7
+  restart : always
+  ports :
+   - 9200:9200
+   - 9300:9300
+  environment:
+   discovery.type : single-node
+
+ oap :
+  image : apache/skywalking-oap-server:8.3.0-es7
+  container_name: oap
+  depends_on : 
+   - ES7
+  links : 
+   - ES7
+  restart : always
+  ports : 
+   - 11800:11800
+   - 12800:12800
+  environment : 
+   SW_STORAGE_ES_CLUSTER_NODES : ES7:9200
+  volumes : 
+   - ../config:/apache-skywalking-apm-bin/config:ro
+ web :
+  image : apache/skywalking-ui
+  container_name : ui
+  depends_on : 
+   - oap
+  links :
+   - oap
+  restart :  always 
+  ports : 
+   -  8080:8080 
+environment : 
+ collector.ribbon.listOfServers :  oap:12800 
